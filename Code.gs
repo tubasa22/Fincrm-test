@@ -4,6 +4,11 @@ const SHEET_CLIENT = '고객';
 const SHEET_MEMO   = '메모';
 
 function doGet(e) {
+  // github.io에서 데이터 요청(API 호출)이 들어왔을 때 데이터를 JSON으로 반환합니다.
+  if (!e || !e.parameter || !e.parameter.action) {
+    return respond({ error: 'No action specified' });
+  }
+  
   const action = e.parameter.action || '';
   const data   = e.parameter.data ? JSON.parse(decodeURIComponent(e.parameter.data)) : {};
   return respond(route(action, data));
