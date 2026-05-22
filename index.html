@@ -525,7 +525,9 @@ tr.click:hover td{background:#f8f9ff;cursor:pointer}
 <div id="app">
   <div class="topbar">
     <div class="logo">🏦 FinCRM</div>
-
+    <div style="display:flex;gap:10px;margin-bottom:10px;border-bottom:1px solid #ccc;padding-bottom:10px">
+      <button class="btn" id="btnHealth" style="background:#007bff;color:#fff;border:none;padding:8px 15px;border-radius:4px;cursor:pointer" onclick="switchProduct('health')">🏥 Medicare/Health</button>
+    </div>
     
     <button class="tab on" data-product="health" onclick="showTab('dashboard',this)">📊 대시보드</button>
     <button class="tab" data-product="health" onclick="showTab('clients',this)">👥 고객 목록</button>
@@ -3669,17 +3671,11 @@ async function saveClient(){
   const lname=document.getElementById('f_lname').value.trim();
   if(!fname||!lname){alert('First Name과 Last Name은 필수입니다');return;}
 
-  // 🔧 오류 수정: 클라이언트 이름에서 특수문자 정규화
-  // PAK ANNE... 처럼 마침표 등이 포함되면 저장 실패하는 문제 해결
-  const fnameClean = fname.replace(/[.\s]+$/, '').trim();  // 끝의 점이나 공백 제거
-  const lnameClean = lname.replace(/[.\s]+$/, '').trim();
-  const mnameClean = document.getElementById('f_mname').value.trim().replace(/[.\s]+$/, '').trim();
-  
   const rowIdx=document.getElementById('eRow').value;
   const plan=document.getElementById('f_plan').value;
-  const mname=mnameClean;
+  const mname=document.getElementById('f_mname').value.trim();
   // 이름 조합: 성 이름 미들
-  const name=[lnameClean,fnameClean,mname].filter(Boolean).join(' ');
+  const name=[lname,fname,mname].filter(Boolean).join(' ');
 
   // No(A열) 자동 부여 — 수정 시 기존 번호 유지, 신규 시 최대값+1
   const existingNo=document.getElementById('eNo').value.trim();
@@ -3691,7 +3687,7 @@ async function saveClient(){
   // N=Plan  O=Product  P=Memo  Q=Ref  R=에이전트이름  S=상세URL
   const vals=[[
     autoNo,
-    fnameClean, mname, lnameClean,
+    fname, mname, lname,
     document.getElementById('f_email').value.trim(),                // E
     document.getElementById('f_address1').value.trim(),             // F
     document.getElementById('f_city').value.trim(),                 // G
@@ -3731,7 +3727,7 @@ async function saveClient(){
       // 데모 모드: 메모리에만 저장
       const obj={
         rowIdx:rowIdx?+rowIdx:clients.length+2,
-        no:autoNo, fname:fnameClean, mname:mname, lname:lnameClean, name,
+        no:autoNo, fname, mname, lname, name,
         email:vals[0][4], address1:vals[0][5], city:vals[0][6], zip:vals[0][7],
         state:vals[0][8], dob:vals[0][9], next:vals[0][10],
         phone:vals[0][11], phone2:vals[0][12],
@@ -3899,42 +3895,31 @@ function parseDob(raw) {
   if (!raw) return null;
   const s = String(raw).trim();
   if (!s) return null;
-  
-  // DD/MM/YYYY (새 입력 형식 — 최우선, 엄격한 검증)
+  // DD/MM/YYYY (새 입력 형식 — 최우선)
   if (/^\d{2}\/\d{2}\/\d{4}$/.test(s)) {
     const [dd, mm, yyyy] = s.split('/').map(Number);
-    // 첫 번째가 31을 초과하거나 두 번째가 12를 초과하면 명확한 DD/MM
-    // 그 외에는 엄격하게 DD/MM으로 해석 (일반적인 입력 순서)
-    if (dd>=1&&dd<=31&&mm>=1&&mm<=12) return {m:mm, d:dd, y:yyyy};
-    // 오류 데이터면 스왑 시도
-    if (mm>=1&&mm<=31&&dd>=1&&dd<=12) return {m:dd, d:mm, y:yyyy};
+    if (mm>=1&&mm<=12&&dd>=1&&dd<=31) return {m:mm, d:dd, y:yyyy};
   }
-  
-  // MM/DD/YYYY (구 형식 호환 — 더 이상 사용 금지하지만 호환성 유지)
+  // MM/DD/YYYY (구 형식 호환)
   if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(s)) {
     const parts = s.split('/').map(Number);
+    // DD/MM/YYYY vs MM/DD/YYYY 구분: 첫 번째 값이 12 초과면 DD
     const [a, b, yyyy] = parts;
     if (a > 12) return {m:b, d:a, y:yyyy}; // DD/MM
-    if (b > 12) return {m:a, d:b, y:yyyy}; // MM/DD (역함수)
-    // 둘 다 12 이하면 DD/MM으로 해석 (새 기본값)
-    return {m:b, d:a, y:yyyy}; 
+    return {m:a, d:b, y:yyyy}; // MM/DD (구형)
   }
-  
   // YYYY-MM-DD
   if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
     const [yyyy, mm, dd] = s.split('-').map(Number);
     if (mm>=1&&mm<=12&&dd>=1&&dd<=31) return {m:mm, d:dd, y:yyyy};
   }
-  
   // 2자리 연도 처리
   if (/^\d{1,2}\/\d{1,2}\/\d{2}$/.test(s)) {
     const [a, b, yy] = s.split('/').map(Number);
     const yyyy = yy > 30 ? 1900+yy : 2000+yy;
     if (a > 12) return {m:b, d:a, y:yyyy};
-    if (b > 12) return {m:a, d:b, y:yyyy};
-    return {m:b, d:a, y:yyyy}; // 기본값 DD/MM
+    return {m:a, d:b, y:yyyy};
   }
-  
   // 엑셀 시리얼
   if (/^\d+$/.test(s)) {
     const serial = parseInt(s);
@@ -5628,6 +5613,33 @@ window.sendToWebhook = async function(payload, modalId, successMsg){
   이 섹션은 내부용 개발 도구입니다.
   고객에게는 보이지 않으며, 필요한 경우 별도의 관리자 버전 파일을 사용하세요.
 -->
+
+<!-- ============================================ -->
+<!-- Phase A 모듈화: 통합 상태 관리 및 API 래퍼 -->
+<!-- ============================================ -->
+
+<!-- 1. 설정 로드 -->
+<script src="src/js/config.js"></script>
+
+<!-- 2. 상태 관리 (Store) -->
+<script src="src/js/core/store.js"></script>
+
+<!-- 3. API 클라이언트 -->
+<script src="src/js/core/api.js"></script>
+
+<!-- 4. 진입점 및 초기화 -->
+<script src="src/js/main.js"></script>
+
+<!-- ============================================ -->
+<!-- 모듈화 활성화 확인 -->
+<!-- ============================================ -->
+<script>
+  console.log('✓ 모듈화 Phase A 로드 완료');
+  console.log('Config:', typeof CONFIG !== 'undefined' ? '✓ OK' : '✗ MISSING');
+  console.log('Store:', typeof store !== 'undefined' ? '✓ OK' : '✗ MISSING');
+  console.log('APIClient:', typeof APIClient !== 'undefined' ? '✓ OK' : '✗ MISSING');
+  console.log('App:', typeof app !== 'undefined' ? '✓ OK' : '✗ MISSING');
+</script>
 
 </body>
 </html>
