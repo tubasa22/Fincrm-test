@@ -525,9 +525,7 @@ tr.click:hover td{background:#f8f9ff;cursor:pointer}
 <div id="app">
   <div class="topbar">
     <div class="logo">🏦 FinCRM</div>
-    <div style="display:flex;gap:10px;margin-bottom:10px;border-bottom:1px solid #ccc;padding-bottom:10px">
 
-    </div>
     
     <button class="tab on" data-product="health" onclick="showTab('dashboard',this)">📊 대시보드</button>
     <button class="tab" data-product="health" onclick="showTab('clients',this)">👥 고객 목록</button>
@@ -554,7 +552,8 @@ tr.click:hover td{background:#f8f9ff;cursor:pointer}
         🎭 데모 모드 — 가상 데이터
       </div>
       <button class="btn sm" onclick="loadAll()" title="새로고침">🔄</button>
-      <button class="btn sm" onclick="openFeedback()" title="피드백 및 버그 리포트" style="background:var(--green2);color:var(--green);border-color:var(--green)">💬 피드백</button>
+      <button class="btn sm" onclick="openFeedback()" title="피드백 보내기" style="background:var(--green2);color:var(--green);border-color:var(--green)">💬 피드백</button>
+      <button class="btn sm" onclick="openBugReport()" title="버그 신고" style="background:var(--red2);color:var(--red);border-color:var(--red)">🐛 버그</button>
       <!-- 유저 드롭다운 -->
       <div class="user-wrap" id="userWrap" style="display:none">
         <button class="user-btn" onclick="toggleUserMenu()" id="userBtn">
@@ -628,7 +627,11 @@ tr.click:hover td{background:#f8f9ff;cursor:pointer}
           <div class="sh"><div class="st">🎂 이번 달 생일자</div><span id="bdThisMonthCnt" style="font-size:12px;color:var(--text3)"></span></div>
           <div id="bdThisMonthList"></div>
         </div>
-
+        <!-- Medicare 리마인더 -->
+        <div>
+          <div class="sh"><div class="st">🏥 Medicare 리마인더</div><span id="medicareReminderCnt" style="font-size:12px;color:var(--text3)"></span></div>
+          <div id="medicareReminderList"></div>
+        </div>
       </div>
     </div>
     <div style="margin-top:20px">
@@ -1283,18 +1286,18 @@ tr.click:hover td{background:#f8f9ff;cursor:pointer}
   </div>
 </div>
 
-<!-- MODAL: 피드백 & 버그 (통합) -->
+<!-- MODAL: 피드백 -->
 <div class="ov" id="feedbackModal">
   <div class="modal" style="max-width:480px">
-    <h3>💬 피드백 및 버그 리포트</h3>
-    <p style="font-size:13px;color:var(--text2);margin-bottom:16px">불편한 점, 개선 아이디어, 버그 신고, 칭찬 무엇이든 보내주세요!</p>
+    <h3>💬 피드백 보내기</h3>
+    <p style="font-size:13px;color:var(--text2);margin-bottom:16px">사용하시면서 불편한 점, 개선 아이디어, 좋았던 점 무엇이든 보내주세요!</p>
     <div class="fg">
-      <label>유형 *</label>
+      <label>종류</label>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <label style="display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer"><input type="radio" name="fbType" value="버그 리포트" checked> 🐛 버그 리포트</label>
-        <label style="display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer"><input type="radio" name="fbType" value="기능 제안"> 💡 기능 제안</label>
-        <label style="display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer"><input type="radio" name="fbType" value="칭찬"> ⭐ 칭찬</label>
-        <label style="display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer"><input type="radio" name="fbType" value="질문"> ❓ 질문</label>
+        <label style="display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer"><input type="radio" name="fbType" value="개선 아이디어" checked> 💡 개선 아이디어</label>
+        <label style="display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer"><input type="radio" name="fbType" value="칭찬"> 👍 칭찬</label>
+        <label style="display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer"><input type="radio" name="fbType" value="불편사항"> 😅 불편사항</label>
+        <label style="display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer"><input type="radio" name="fbType" value="기타"> 📌 기타</label>
       </div>
     </div>
     <div class="fg">
@@ -1302,20 +1305,67 @@ tr.click:hover td{background:#f8f9ff;cursor:pointer}
       <input id="fb_page" readonly style="background:var(--g2);color:var(--text2);font-size:12px">
     </div>
     <div class="fg">
-      <label>제목 *</label>
-      <input id="fb_title" placeholder="간단한 제목을 입력하세요">
-    </div>
-    <div class="fg">
-      <label>상세 내용</label>
-      <textarea id="fb_text" placeholder="상세한 설명을 입력해주세요&#10;- 발생 위치&#10;- 재현 방법&#10;- 기대 결과" style="min-height:100px"></textarea>
+      <label>내용 *</label>
+      <textarea id="fb_text" placeholder="자유롭게 작성해 주세요..." style="min-height:100px"></textarea>
     </div>
     <div class="fg">
       <label>연락처 (선택 — 답변 원하시면 입력)</label>
       <input id="fb_contact" placeholder="이메일 또는 전화번호">
     </div>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+      <label style="font-size:12px;color:var(--text2)">만족도</label>
+      <div id="fb_stars" style="display:flex;gap:4px;font-size:20px;cursor:pointer">
+        <span onclick="setStars(1)" class="fb-star">☆</span>
+        <span onclick="setStars(2)" class="fb-star">☆</span>
+        <span onclick="setStars(3)" class="fb-star">☆</span>
+        <span onclick="setStars(4)" class="fb-star">☆</span>
+        <span onclick="setStars(5)" class="fb-star">☆</span>
+      </div>
+      <span id="fb_star_val" style="font-size:12px;color:var(--text3)"></span>
+    </div>
     <div class="mf">
       <button class="btn" onclick="closeOv('feedbackModal')">취소</button>
       <button class="btn pri" onclick="submitFeedback()">📤 보내기</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: 버그 리포트 -->
+<div class="ov" id="bugModal">
+  <div class="modal" style="max-width:500px">
+    <h3>🐛 버그 신고</h3>
+    <p style="font-size:13px;color:var(--text2);margin-bottom:16px">발견하신 오류를 알려주세요. 빠르게 수정하겠습니다.</p>
+    <div class="fg">
+      <label>심각도</label>
+      <div style="display:flex;gap:8px">
+        <label style="display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer"><input type="radio" name="bugSeverity" value="심각" > 🔴 심각 (앱이 안 됨)</label>
+        <label style="display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer"><input type="radio" name="bugSeverity" value="보통" checked> 🟡 보통 (불편함)</label>
+        <label style="display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer"><input type="radio" name="bugSeverity" value="낮음"> 🟢 낮음 (사소함)</label>
+      </div>
+    </div>
+    <div class="fg">
+      <label>발생 화면</label>
+      <input id="bug_page" readonly style="background:var(--g2);color:var(--text2);font-size:12px">
+    </div>
+    <div class="fg">
+      <label>어떤 동작을 했나요? *</label>
+      <input id="bug_action" placeholder="예: 고객 수정 버튼을 눌렀을 때">
+    </div>
+    <div class="fg">
+      <label>어떤 문제가 발생했나요? *</label>
+      <textarea id="bug_desc" placeholder="예: 저장 후 정보가 바뀌지 않음" style="min-height:80px"></textarea>
+    </div>
+    <div class="fg">
+      <label>예상했던 동작</label>
+      <input id="bug_expected" placeholder="예: 수정한 내용이 저장되어야 함">
+    </div>
+    <div class="fg">
+      <label>환경 정보</label>
+      <input id="bug_env" readonly style="background:var(--g2);color:var(--text2);font-size:11px">
+    </div>
+    <div class="mf">
+      <button class="btn" onclick="closeOv('bugModal')">취소</button>
+      <button class="btn" style="background:var(--red2);color:var(--red);border-color:var(--red)" onclick="submitBugReport()">🐛 버그 신고</button>
     </div>
   </div>
 </div>
@@ -2172,6 +2222,7 @@ async function loadAll(){
 function renderAll(){
   updateKPIs();renderClients();renderSchedule();renderFollowup();renderPlanStats();renderCalendar();buildNotifs();
   renderBdThisMonth();
+  renderMedicareReminder();
   // 수동 일정 대상 datalist 채우기
   const dl = document.getElementById('ms_target_list');
   if(dl) dl.innerHTML = clients.map(c=>`<option value="${c.name}">`).join('');
@@ -2371,7 +2422,54 @@ function renderBdThisMonth(){
 // ══════════════════════════════════════
 // Medicare 리마인더 (65세 3개월 전)
 // ══════════════════════════════════════
-
+function renderMedicareReminder(){
+  const el = document.getElementById('medicareReminderList');
+  if(!el) return;
+  const today = new Date(); today.setHours(0,0,0,0);
+  const list = [];
+  clients.forEach(c=>{
+    const parsed = parseDob(c.dob);
+    if(!parsed) return;
+    const {m, d, y} = parsed;
+    // 65세 생일
+    const bday65 = new Date(y+65, m-1, d); bday65.setHours(0,0,0,0);
+    // 이미 65세 이상이면 스킵
+    if(bday65 <= today) return;
+    // 65세 생일 3개월(90일) 전
+    const reminderDate = new Date(bday65); reminderDate.setDate(reminderDate.getDate()-90);
+    // 리마인더 기간 안에 있는 경우: 오늘 기준 reminderDate 이후 ~ 65세 생일 전
+    if(today >= reminderDate){
+      const daysTo65 = Math.ceil((bday65-today)/864e5);
+      const age = 64; // 65세 직전
+      list.push({...c, bday65, daysTo65, reminderDate});
+    }
+  });
+  list.sort((a,b)=>a.daysTo65-b.daysTo65);
+  set('medicareReminderCnt', list.length+'명');
+  if(!list.length){
+    el.innerHTML=`<div style="font-size:13px;color:var(--text3);padding:10px 0">해당 고객 없음</div>`;
+    return;
+  }
+  el.innerHTML = list.map(c=>{
+    const urgent = c.daysTo65 <= 30;
+    return `<div class="fu" style="border-left:3px solid ${urgent?'var(--red)':'var(--blue)'}">
+      <div class="fu-bar" style="background:${urgent?'var(--red)':'var(--blue)'}"></div>
+      <div class="fu-meta" onclick="openDetail(${c.rowIdx})">
+        <div class="fu-name" style="display:flex;align-items:center;gap:6px">
+          ${c.name}
+          <span style="background:#dbeafe;color:#1e40af;font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px">🏥 New Medicare</span>
+        </div>
+        <div class="fu-sub">65세 생일: ${c.bday65.getFullYear()}년 ${c.bday65.getMonth()+1}월 ${c.bday65.getDate()}일 · ${c.phone||'—'}</div>
+      </div>
+      <div class="fu-acts">
+        ${c.phone?`<a href="tel:${c.phone}" class="btn sm" style="padding:4px 8px" onclick="event.stopPropagation();setTimeout(()=>updateLastContact(${c.rowIdx},false),1000)">📞</a>`:''}
+        ${c.phone?`<button class="btn sm" style="padding:4px 8px" onclick="smsAndReset('${esc(c.name)}','${c.phone}',${c.rowIdx});event.stopPropagation()">💬</button>`:''}
+        <button class="btn sm" style="padding:4px 8px" onclick="openAddMemoFor('${esc(c.name)}');event.stopPropagation()">📝</button>
+      </div>
+      <div class="fu-dd" style="color:${urgent?'var(--red)':'var(--blue)'}">D-${c.daysTo65}</div>
+    </div>`;
+  }).join('');
+}
 
 // ══════════════════════════════════════
 // GLOBAL SEARCH
@@ -3151,27 +3249,36 @@ function openFeedback(){
 }
 
 async function submitFeedback(){
-  const title = document.getElementById('fb_title').value.trim();
   const text = document.getElementById('fb_text').value.trim();
-  if(!title){ toast('❌ 제목을 입력해주세요'); return; }
-  const type = document.querySelector('input[name="fbType"]:checked')?.value || '버그 리포트';
+  if(!text){ toast('❌ 내용을 입력해주세요'); return; }
+  const type = document.querySelector('input[name="fbType"]:checked')?.value || '기타';
   const user = document.getElementById('udName')?.textContent || '익명';
   const payload = {
     type:    'feedback',
     subtype: type,
     page:    document.getElementById('fb_page').value,
-    title:   title,
-    text:    text,
+    text,
+    stars:   fbStars,
     contact: document.getElementById('fb_contact').value.trim(),
     user,
     ts:      new Date().toLocaleString('ko-KR'),
     version: '1.0',
     mode:    isDemo ? 'demo' : 'live'
   };
-  await sendToWebhook(payload, 'feedbackModal', `✅ ${type}이 전달되었습니다. 감사합니다!`);
+  await sendToWebhook(payload, 'feedbackModal', `✅ 피드백이 전달되었습니다. 감사합니다!`);
 }
 
-
+function openBugReport(){
+  document.getElementById('bug_page').value = getCurrentPage();
+  document.getElementById('bug_action').value = '';
+  document.getElementById('bug_desc').value = '';
+  document.getElementById('bug_expected').value = '';
+  document.getElementById('bug_env').value =
+    `${navigator.userAgent.match(/(Chrome|Safari|Firefox|Edge)\/[\d.]+/)?.[0]||'Browser'} · ${window.innerWidth}×${window.innerHeight}`;
+  document.querySelector('input[name="bugSeverity"][value="보통"]').checked = true;
+  document.getElementById('bugModal').classList.add('on');
+  setTimeout(()=>document.getElementById('bug_action').focus(), 100);
+}
 
 async function submitBugReport(){
   const action = document.getElementById('bug_action').value.trim();
@@ -3562,11 +3669,17 @@ async function saveClient(){
   const lname=document.getElementById('f_lname').value.trim();
   if(!fname||!lname){alert('First Name과 Last Name은 필수입니다');return;}
 
+  // 🔧 오류 수정: 클라이언트 이름에서 특수문자 정규화
+  // PAK ANNE... 처럼 마침표 등이 포함되면 저장 실패하는 문제 해결
+  const fnameClean = fname.replace(/[.\s]+$/, '').trim();  // 끝의 점이나 공백 제거
+  const lnameClean = lname.replace(/[.\s]+$/, '').trim();
+  const mnameClean = document.getElementById('f_mname').value.trim().replace(/[.\s]+$/, '').trim();
+  
   const rowIdx=document.getElementById('eRow').value;
   const plan=document.getElementById('f_plan').value;
-  const mname=document.getElementById('f_mname').value.trim();
+  const mname=mnameClean;
   // 이름 조합: 성 이름 미들
-  const name=[lname,fname,mname].filter(Boolean).join(' ');
+  const name=[lnameClean,fnameClean,mname].filter(Boolean).join(' ');
 
   // No(A열) 자동 부여 — 수정 시 기존 번호 유지, 신규 시 최대값+1
   const existingNo=document.getElementById('eNo').value.trim();
@@ -3578,7 +3691,7 @@ async function saveClient(){
   // N=Plan  O=Product  P=Memo  Q=Ref  R=에이전트이름  S=상세URL
   const vals=[[
     autoNo,
-    fname, mname, lname,
+    fnameClean, mname, lnameClean,
     document.getElementById('f_email').value.trim(),                // E
     document.getElementById('f_address1').value.trim(),             // F
     document.getElementById('f_city').value.trim(),                 // G
@@ -3618,7 +3731,7 @@ async function saveClient(){
       // 데모 모드: 메모리에만 저장
       const obj={
         rowIdx:rowIdx?+rowIdx:clients.length+2,
-        no:autoNo, fname, mname, lname, name,
+        no:autoNo, fname:fnameClean, mname:mname, lname:lnameClean, name,
         email:vals[0][4], address1:vals[0][5], city:vals[0][6], zip:vals[0][7],
         state:vals[0][8], dob:vals[0][9], next:vals[0][10],
         phone:vals[0][11], phone2:vals[0][12],
@@ -3786,31 +3899,42 @@ function parseDob(raw) {
   if (!raw) return null;
   const s = String(raw).trim();
   if (!s) return null;
-  // DD/MM/YYYY (새 입력 형식 — 최우선)
+  
+  // DD/MM/YYYY (새 입력 형식 — 최우선, 엄격한 검증)
   if (/^\d{2}\/\d{2}\/\d{4}$/.test(s)) {
     const [dd, mm, yyyy] = s.split('/').map(Number);
-    if (mm>=1&&mm<=12&&dd>=1&&dd<=31) return {m:mm, d:dd, y:yyyy};
+    // 첫 번째가 31을 초과하거나 두 번째가 12를 초과하면 명확한 DD/MM
+    // 그 외에는 엄격하게 DD/MM으로 해석 (일반적인 입력 순서)
+    if (dd>=1&&dd<=31&&mm>=1&&mm<=12) return {m:mm, d:dd, y:yyyy};
+    // 오류 데이터면 스왑 시도
+    if (mm>=1&&mm<=31&&dd>=1&&dd<=12) return {m:dd, d:mm, y:yyyy};
   }
-  // MM/DD/YYYY (구 형식 호환)
+  
+  // MM/DD/YYYY (구 형식 호환 — 더 이상 사용 금지하지만 호환성 유지)
   if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(s)) {
     const parts = s.split('/').map(Number);
-    // DD/MM/YYYY vs MM/DD/YYYY 구분: 첫 번째 값이 12 초과면 DD
     const [a, b, yyyy] = parts;
     if (a > 12) return {m:b, d:a, y:yyyy}; // DD/MM
-    return {m:a, d:b, y:yyyy}; // MM/DD (구형)
+    if (b > 12) return {m:a, d:b, y:yyyy}; // MM/DD (역함수)
+    // 둘 다 12 이하면 DD/MM으로 해석 (새 기본값)
+    return {m:b, d:a, y:yyyy}; 
   }
+  
   // YYYY-MM-DD
   if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
     const [yyyy, mm, dd] = s.split('-').map(Number);
     if (mm>=1&&mm<=12&&dd>=1&&dd<=31) return {m:mm, d:dd, y:yyyy};
   }
+  
   // 2자리 연도 처리
   if (/^\d{1,2}\/\d{1,2}\/\d{2}$/.test(s)) {
     const [a, b, yy] = s.split('/').map(Number);
     const yyyy = yy > 30 ? 1900+yy : 2000+yy;
     if (a > 12) return {m:b, d:a, y:yyyy};
-    return {m:a, d:b, y:yyyy};
+    if (b > 12) return {m:a, d:b, y:yyyy};
+    return {m:b, d:a, y:yyyy}; // 기본값 DD/MM
   }
+  
   // 엑셀 시리얼
   if (/^\d+$/.test(s)) {
     const serial = parseInt(s);
